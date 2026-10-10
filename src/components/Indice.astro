@@ -1,0 +1,121 @@
+---
+import type { Capitulo } from '../lib/catalogo';
+
+interface Props {
+	perro: string;
+	capitulos: Capitulo[];
+}
+
+const { perro, capitulos } = Astro.props;
+const enlaces = [
+	...capitulos.map((c) => ({ href: `#capitulo-${c.numero}`, texto: `Mes ${c.numero}`, titulo: c.titulo })),
+	{ href: '#galeria', texto: 'Galería', titulo: 'Todas las fotos' },
+];
+const RETRASOS = ['delay-100', 'delay-150', 'delay-200', 'delay-300', 'delay-500', 'delay-700'];
+---
+
+<header class="pointer-events-none fixed inset-x-0 top-0 z-40 mt-6 flex justify-center px-4">
+	<nav
+		aria-label="Capítulos"
+		class="pointer-events-auto flex w-max items-center gap-1 rounded-full border border-borde bg-fondo/70 p-1 shadow-lg shadow-black/5 backdrop-blur-xl"
+	>
+		<a href="#inicio" class="rounded-full px-3 py-2 text-base font-semibold transition duration-700 ease-fluido hover:bg-elevada">
+			{perro}
+		</a>
+		<ul class="hidden items-center gap-1 md:flex">
+			{
+				enlaces.map((e) => (
+					<li>
+						<a
+							href={e.href}
+							title={e.titulo}
+							data-indice
+							class="block rounded-full px-3 py-2 text-sm font-semibold text-tinta-suave transition duration-700 ease-fluido hover:bg-elevada hover:text-tinta active:scale-[0.98] aria-[current]:bg-tinta aria-[current]:text-fondo"
+						>
+							{e.texto}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+		<button
+			type="button"
+			class="hamburguesa relative size-10 rounded-full transition duration-700 ease-fluido hover:bg-elevada md:hidden"
+			aria-expanded="false"
+			aria-controls="menu-movil"
+			aria-label="Abrir el índice"
+		>
+			<span class="linea linea--1" aria-hidden="true"></span>
+			<span class="linea linea--2" aria-hidden="true"></span>
+		</button>
+	</nav>
+</header>
+
+<div
+	id="menu-movil"
+	class="menu-movil invisible fixed inset-0 z-30 flex flex-col justify-center bg-fondo/80 px-8 opacity-0 backdrop-blur-3xl transition-all duration-700 ease-fluido md:hidden"
+>
+	<ul class="flex flex-col gap-4">
+		{
+			enlaces.map((e, i) => (
+				<li class="overflow-hidden">
+					<a
+						href={e.href}
+						data-indice
+						class:list={[
+							'menu-movil__enlace block translate-y-12 py-2 text-4xl font-semibold tracking-tight opacity-0 transition-all duration-700 ease-fluido aria-[current]:text-acento',
+							RETRASOS[i % RETRASOS.length],
+						]}
+					>
+						{e.texto}
+						{e.titulo !== e.texto && <span class="block text-base font-medium text-tinta-suave">{e.titulo}</span>}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</div>
+
+<style>
+	.linea {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 18px;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--tinta);
+		transition: transform 700ms var(--ease-fluido);
+	}
+	.linea--1 {
+		transform: translate(-50%, -4px);
+	}
+	.linea--2 {
+		transform: translate(-50%, 4px);
+	}
+	.hamburguesa[aria-expanded='true'] .linea--1 {
+		transform: translate(-50%, 0) rotate(45deg);
+	}
+	.hamburguesa[aria-expanded='true'] .linea--2 {
+		transform: translate(-50%, 0) rotate(-45deg);
+	}
+	.menu-movil.abierto {
+		visibility: visible;
+		opacity: 1;
+	}
+	.menu-movil.abierto .menu-movil__enlace {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.linea,
+		.menu-movil,
+		.menu-movil__enlace {
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	import '../scripts/indice';
+</script>

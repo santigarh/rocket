@@ -1,0 +1,51 @@
+---
+interface Props {
+	texto: string;
+}
+
+const { texto } = Astro.props;
+// Cada línea del yaml es una línea de la frase; cada palabra se revela por separado.
+const lineas = texto
+	.trim()
+	.split('\n')
+	.map((l) => l.trim().split(/\s+/).filter(Boolean))
+	.filter((l) => l.length);
+---
+
+<section id="frase" class="frase mx-auto max-w-6xl px-4 py-24 md:px-8" aria-label="Frase">
+	<p class="max-w-[680px] text-4xl leading-tight font-semibold tracking-tight md:text-6xl md:leading-none">
+		{
+			lineas.map((palabras, i) => (
+				<>
+					{palabras.map((p) => (
+						<>
+							<span class="palabra">{p}</span>{' '}
+						</>
+					))}
+					{i < lineas.length - 1 && <br />}
+				</>
+			))
+		}
+	</p>
+</section>
+
+<style>
+	.palabra {
+		color: color-mix(in srgb, var(--tinta) 28%, transparent);
+		transition: color 700ms var(--ease-fluido);
+	}
+	.palabra.activa,
+	:global(html:not(.js)) .palabra {
+		color: var(--tinta);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.palabra {
+			color: var(--tinta);
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	import '../scripts/frase';
+</script>

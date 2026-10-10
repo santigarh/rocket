@@ -1,0 +1,169 @@
+---
+import { getImage, Picture } from 'astro:assets';
+import type { Foto } from '../lib/catalogo';
+import { formatoCorto, formatoISO, formatoLargo } from '../lib/catalogo/fechas';
+import { imagenDe } from '../lib/imagenes';
+import Icono from './Icono.astro';
+
+interface Props {
+	fotos: Foto[];
+	perro: string;
+}
+
+const { fotos, perro } = Astro.props;
+
+// Por cada foto: la miniatura y la versión grande que usa el visor.
+const items = await Promise.all(
+	fotos.map(async (foto) => {
+		const imagen = await imagenDe(foto.nombre);
+		const anchos = [...[480, 800, 1200, 1600].filter((w) => w < imagen.width), imagen.width];
+		const grande = await getImage({ src: imagen, widths: anchos, format: 'webp', quality: 82 });
+		return {
+			foto,
+			imagen,
+			alt: foto.texto ?? `${perro}, ${formatoLargo(foto.fecha)}`,
+			grande,
+		};
+	}),
+);
+---
+
+<section id="galeria" class="mx-auto max-w-6xl px-4 py-24 md:px-8" aria-labelledby="galeria-titulo">
+	<header class="revelar">
+		<p class="text-sm font-semibold tracking-widest text-acento uppercase">Galería</p>
+		<h2 id="galeria-titulo" class="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">Todas las fotos</h2>
+		<p class="mt-3 text-base text-tinta-suave">{fotos.length} fotos, de la más antigua a la más reciente.</p>
+	</header>
+
+	<ol class="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+		{
+			items.map(({ foto, imagen, alt, grande }, i) => (
+				<li>
+					<button
+						type="button"
+						class="miniatura group block w-full rounded-2xl border border-borde bg-superficie p-2 text-left transition duration-700 ease-fluido hover:-translate-y-1 hover:border-acento active:scale-[0.98]"
+						aria-label={`Ver en grande: ${alt}`}
+						data-indice={i}
+						data-id={foto.id}
+						data-src={grande.src}
+						data-srcset={grande.srcSet.attribute}
+						data-ancho={imagen.width}
+						data-alto={imagen.height}
+						data-alt={alt}
+						data-fecha={formatoLargo(foto.fecha)}
+						data-texto={foto.texto ?? ''}
+					>
+						<Picture
+							src={imagen}
+							formats={['avif', 'webp']}
+							widths={[240, 360, 480].filter((w) => w < imagen.width).concat(Math.min(480, imagen.width))}
+							sizes="(min-width: 1024px) 18rem, (min-width: 640px) 30vw, 45vw"
+							alt=""
+							loading="lazy"
+							decoding="async"
+							class="aspect-square w-full rounded-lg object-cover"
+						/>
+						<time datetime={formatoISO(foto.fecha)} class="mt-2 block px-1 pb-1 text-sm font-medium text-tinta-suave">
+							{formatoCorto(foto.fecha)}
+						</time>
+					</button>
+				</li>
+			))
+		}
+	</ol>
+</section>
+
+<dialog id="visor" class="visor" aria-label="Visor de fotos">
+	<div class="visor__escenario flex h-full flex-col">
+		<div class="flex items-center justify-between px-4 pt-4 md:px-8 md:pt-6">
+			<p class="visor__posicion text-sm font-semibold text-white/80" aria-live="polite"></p>
+			<button
+				type="button"
+				class="visor__cerrar inline-flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition duration-700 ease-fluido hover:bg-white/20 active:scale-[0.98]"
+				aria-label="Cerrar el visor"
+			>
+				<Icono nombre="cerrar" class="size-5" />
+			</button>
+		</div>
+
+		<div class="visor__zona relative flex min-h-0 flex-1 items-center justify-center px-4 md:px-24">
+			<img class="visor__imagen max-h-full max-w-full rounded-xl object-contain select-none" alt="" draggable="false" />
+			<button
+				type="button"
+				class="visor__anterior absolute top-1/2 left-4 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition duration-700 ease-fluido hover:bg-white/20 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-30 md:inline-flex md:left-8"
+				aria-label="Foto anterior"
+			>
+				<Icono nombre="caret-izquierda" class="size-6" />
+			</button>
+			<button
+				type="button"
+				class="visor__siguiente absolute top-1/2 right-4 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition duration-700 ease-fluido hover:bg-white/20 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-30 md:inline-flex md:right-8"
+				aria-label="Foto siguiente"
+			>
+				<Icono nombre="caret-derecha" class="size-6" />
+			</button>
+		</div>
+
+		<div class="flex items-end justify-between gap-4 px-4 pt-4 pb-6 md:px-8">
+			<div class="max-w-[680px] text-white">
+				<p class="visor__fecha text-sm font-medium text-white/70"></p>
+				<p class="visor__texto mt-1 text-base"></p>
+			</div>
+			<div class="flex gap-2 md:hidden">
+				<button
+					type="button"
+					class="visor__anterior inline-flex size-10 items-center justify-center rounded-full bg-white/10 text-white active:scale-[0.98] disabled:opacity-30"
+					aria-label="Foto anterior"
+				>
+					<Icono nombre="caret-izquierda" class="size-5" />
+				</button>
+				<button
+					type="button"
+					class="visor__siguiente inline-flex size-10 items-center justify-center rounded-full bg-white/10 text-white active:scale-[0.98] disabled:opacity-30"
+					aria-label="Foto siguiente"
+				>
+					<Icono nombre="caret-derecha" class="size-5" />
+				</button>
+			</div>
+		</div>
+	</div>
+</dialog>
+
+<style>
+	.visor {
+		width: 100vw;
+		height: 100dvh;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: rgb(0 0 0 / 0.92);
+		color: #fff;
+	}
+	.visor::backdrop {
+		background: rgb(0 0 0 / 0.6);
+		backdrop-filter: blur(24px);
+	}
+	.visor[open] .visor__escenario {
+		animation: visor-entrada 600ms var(--ease-fluido);
+	}
+	.visor__zona {
+		touch-action: pan-y;
+	}
+	@keyframes visor-entrada {
+		from {
+			opacity: 0;
+			transform: scale(0.98);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.visor[open] .visor__escenario {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	import '../scripts/visor';
+</script>

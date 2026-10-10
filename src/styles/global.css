@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist/wght.css";
+
+/* ---- Tema: claro por defecto, oscuro según el sistema ---- */
+:root {
+	--fondo: #f6f3ee;
+	--superficie: #ffffff;
+	--elevada: #ece6dd;
+	--tinta: #161412;
+	--tinta-suave: #5f5a54;
+	--acento: #a4561f;
+	--borde: #e2dbd0;
+	--titulo-desde: #000000;
+	--titulo-hasta: #666666;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--fondo: #181818;
+		--superficie: #1f1f1f;
+		--elevada: #272727;
+		--tinta: #f2efea;
+		--tinta-suave: #a49e97;
+		--acento: #e0955a;
+		--borde: #313131;
+		--titulo-desde: #ffffff;
+		--titulo-hasta: #9b9b9b;
+		color-scheme: dark;
+	}
+}
+
+@theme inline {
+	--font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+	--color-fondo: var(--fondo);
+	--color-superficie: var(--superficie);
+	--color-elevada: var(--elevada);
+	--color-tinta: var(--tinta);
+	--color-tinta-suave: var(--tinta-suave);
+	--color-acento: var(--acento);
+	--color-borde: var(--borde);
+	--ease-fluido: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+	html {
+		background: var(--fondo);
+		color: var(--tinta);
+		-webkit-font-smoothing: antialiased;
+	}
+	body {
+		@apply font-sans bg-fondo text-tinta;
+		font-synthesis: none; /* nunca itálicas ni negritas sintéticas */
+	}
+	h1, h2, h3 {
+		text-wrap: balance;
+	}
+	p, li, figcaption {
+		text-wrap: pretty;
+	}
+	:focus-visible {
+		outline: 2px solid var(--acento);
+		outline-offset: 4px;
+		border-radius: 4px;
+	}
+}
+
+@layer components {
+	/* Título con degradado de izquierda a derecha (solo en texto, nunca en fondos). */
+	.texto-degradado {
+		background-image: linear-gradient(90deg, var(--titulo-desde), var(--titulo-hasta));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	/* Aparición al entrar en pantalla: solo si hay JS (clase .js en <html>). */
+	.js .revelar {
+		opacity: 0;
+		transform: translateY(4rem);
+		filter: blur(12px);
+		transition:
+			opacity 900ms var(--ease-fluido),
+			transform 900ms var(--ease-fluido),
+			filter 900ms var(--ease-fluido);
+	}
+	.js .revelar.visible {
+		opacity: 1;
+		transform: none;
+		filter: none;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.js .revelar {
+		opacity: 1;
+		transform: none;
+		filter: none;
+		transition: none;
+	}
+	html {
+		scroll-behavior: auto !important;
+	}
+}

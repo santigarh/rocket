@@ -1,11 +1,29 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import Capitulo from '../components/Capitulo.astro';
+import Frase from '../components/Frase.astro';
+import Galeria from '../components/Galeria.astro';
+import Indice from '../components/Indice.astro';
+import Pie from '../components/Pie.astro';
+import Portada from '../components/Portada.astro';
 import Layout from '../layouts/Layout.astro';
+import { getCatalogo } from '../lib/catalogo';
+import { formatoLargo } from '../lib/catalogo/fechas';
+import { imagenDe } from '../lib/imagenes';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const catalogo = await getCatalogo();
+const { perro, capitulos, fotos, frase } = catalogo;
+const imagenPortada = await imagenDe(catalogo.portada.nombre);
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+	titulo={`${perro.nombre} · Su historia, mes a mes`}
+	descripcion={`La historia de ${perro.nombre} desde que llegó a casa el ${formatoLargo(perro.llegada)}, contada en ${fotos.length} fotos.`}
+	imagen={imagenPortada}
+>
+	<Indice slot="cabecera" perro={perro.nombre} capitulos={capitulos} />
+	<Portada catalogo={catalogo} />
+	{capitulos.map((c) => <Capitulo capitulo={c} perro={perro.nombre} />)}
+	<Frase texto={frase} />
+	<Galeria fotos={fotos} perro={perro.nombre} />
+	<Pie slot="pie" perro={perro.nombre} />
 </Layout>

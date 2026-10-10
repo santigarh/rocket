@@ -1,0 +1,123 @@
+---
+import type { Capitulo } from '../lib/catalogo';
+import { formatoISO, formatoRango } from '../lib/catalogo/fechas';
+import { ruta } from '../lib/ruta';
+import Icono from './Icono.astro';
+import Tarjeta from './Tarjeta.astro';
+
+interface Props {
+	capitulo: Capitulo;
+	perro: string;
+}
+
+const { capitulo, perro } = Astro.props;
+const { numero, titulo, desde, hasta, tarjetas, visibles } = capitulo;
+const resumido = visibles.length < tarjetas.length;
+const totalFotos = tarjetas.reduce((n, t) => n + t.fotos.length, 0);
+const idTitulo = `capitulo-${numero}-titulo`;
+// Giros alternados para que parezca un álbum, siempre los mismos en cada compilación.
+const GIROS = [-1.5, 1, -0.5, 1.5, -1, 0.5];
+---
+
+<section id={`capitulo-${numero}`} class="capitulo relative" data-capitulo={numero} aria-labelledby={idTitulo}>
+	<div class="capitulo__escenario flex flex-col justify-center gap-8 pt-24 pb-16">
+		<header class="mx-auto w-full max-w-6xl px-4 md:px-8">
+			<p class="text-sm font-semibold tracking-widest text-acento uppercase">Capítulo {numero}</p>
+			<h2 id={idTitulo} class="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">{titulo}</h2>
+			<p class="mt-3 text-base text-tinta-suave">
+				<time datetime={formatoISO(desde)}>{formatoRango(desde, hasta)}</time>
+				<span aria-hidden="true"> · </span>
+				{totalFotos} {totalFotos === 1 ? 'foto' : 'fotos'}
+			</p>
+		</header>
+
+		<div
+			class="capitulo__pista"
+			tabindex="0"
+			role="region"
+			aria-label={`Línea de tiempo: ${titulo}. Usa las flechas izquierda y derecha para avanzar.`}
+		>
+			<ol class="capitulo__lista flex w-max items-start gap-6 py-6">
+				{
+					visibles.map((tarjeta, i) => (
+						<li class="capitulo__item shrink-0">
+							<Tarjeta tarjeta={tarjeta} perro={perro} giro={GIROS[i % GIROS.length]} />
+						</li>
+					))
+				}
+				{
+					resumido && (
+						<li class="capitulo__item flex shrink-0 self-center">
+							<a
+								href={ruta(`/mes/${numero}`)}
+								class="inline-flex items-center gap-2 rounded-full border border-borde bg-superficie px-3 py-2 text-base font-semibold transition duration-700 ease-fluido hover:-translate-y-0.5 hover:border-acento active:scale-[0.98]"
+							>
+								Ver las {totalFotos} fotos de este mes
+								<Icono nombre="flecha-derecha" class="size-4" />
+							</a>
+						</li>
+					)
+				}
+			</ol>
+		</div>
+
+		<div class="mx-auto w-full max-w-6xl px-4 md:px-8" aria-hidden="true">
+			<div class="h-1 overflow-hidden rounded-full bg-borde">
+				<div class="capitulo__barra h-full w-full origin-left rounded-full bg-acento" style="transform: scaleX(0)"></div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	/* Alto de la foto de cada tarjeta; en modo fijado, lo que deja libre el resto del capítulo. */
+	.capitulo {
+		--alto-tarjeta: 56dvh;
+	}
+	:global(.linea-fijada) .capitulo {
+		--alto-tarjeta: max(15rem, calc(100dvh - 27rem));
+	}
+	:global(.linea-fijada) .capitulo__escenario {
+		padding-top: 6rem; /* deja libre la barra del índice */
+		padding-bottom: 2rem;
+	}
+
+	/* La lista arranca alineada con el texto del encabezado (contenedor de 72rem). */
+	.capitulo__lista {
+		padding-inline: max(16px, calc((100vw - 72rem) / 2 + 32px));
+	}
+
+	/* Modo nativo (táctil, movimiento reducido o sin JS): scroll horizontal con imán. */
+	.capitulo__pista {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+	.capitulo__pista::-webkit-scrollbar {
+		display: none;
+	}
+	.capitulo__item {
+		scroll-snap-align: center;
+	}
+
+	/* Modo fijado (escritorio con puntero fino): el scroll vertical mueve la pista. */
+	:global(.linea-fijada) .capitulo__escenario {
+		position: sticky;
+		top: 0;
+		height: 100dvh;
+		overflow: hidden;
+	}
+	:global(.linea-fijada) .capitulo__pista {
+		overflow: visible;
+	}
+	:global(.linea-fijada) .capitulo__lista {
+		transform: translate3d(var(--desplazamiento, 0px), 0, 0);
+		will-change: transform;
+	}
+</style>
+
+<script>
+	import '../scripts/linea-tiempo';
+	import '../scripts/rafagas';
+</script>

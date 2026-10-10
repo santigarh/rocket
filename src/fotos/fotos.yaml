@@ -1,0 +1,27 @@
+# Anotaciones de las fotos de Rocket.
+# Para agregar una foto basta con soltarla en esta carpeta; este archivo es opcional.
+# Guía completa: LEEME.md
+
+perro:
+  nombre: Rocket
+  llegada: 2026-09-09
+
+# Títulos propios por capítulo (mes N desde la llegada). Sin título: "Mes N".
+capitulos:
+  1: Su primer mes
+
+# Frase grande que se revela palabra por palabra antes de la galería.
+frase: |
+  Llegó cabiendo en dos manos.
+  Ahora ocupa la casa entera.
+
+# Solo las fotos que quieras anotar, por nombre de archivo.
+# Campos posibles: texto, fecha (AAAA-MM-DD o AAAA-MM-DD HH:MM), destacada, oculta.
+fotos:
+  # IMG-20260909-WA0045.jpg:
+  #   texto: El día que llegó a casa
+  #   destacada: true
+  # IMG-20260918-WA0013.jpg:
+  #   fecha: 2026-09-16
+  # 20261009_124442.webp:
+  #   oculta: true

@@ -1,0 +1,83 @@
+---
+import { Picture } from 'astro:assets';
+import type { Foto, Tarjeta } from '../lib/catalogo';
+import { formatoCorto, formatoISO, formatoLargo } from '../lib/catalogo/fechas';
+import { imagenDe } from '../lib/imagenes';
+
+interface Props {
+	tarjeta: Tarjeta;
+	perro: string;
+	/** Giro leve tipo álbum, en grados. */
+	giro?: number;
+	carga?: 'lazy' | 'eager';
+}
+
+const { tarjeta, perro, giro = 0, carga = 'lazy' } = Astro.props;
+const imagenes = await Promise.all(tarjeta.fotos.map((f) => imagenDe(f.nombre)));
+const principal = imagenes[0];
+const esRafaga = imagenes.length > 1;
+const proporcion = principal.width / principal.height;
+
+const altDe = (f: Foto) => f.texto ?? `${perro}, ${formatoLargo(f.fecha)}`;
+const anchos = (ancho: number) => [...[320, 480, 640, 960, 1280].filter((w) => w < ancho), ancho];
+// La tarjeta mide de alto como mucho 58vh (y nunca más que la foto original).
+const sizes = `(min-width: 768px) ${Math.round(58 * proporcion)}vh, ${Math.round(56 * proporcion)}vh`;
+---
+
+<figure
+	class="tarjeta inline-flex flex-col rounded-2xl border border-borde bg-superficie p-2 shadow-lg shadow-black/5"
+	style={`--giro: ${giro}deg`}
+	data-rafaga={esRafaga ? '' : undefined}
+>
+	<div
+		class="relative overflow-hidden rounded-lg bg-elevada"
+		style={`aspect-ratio: ${principal.width} / ${principal.height}; height: min(var(--alto-tarjeta, 56dvh), ${principal.height}px)`}
+	>
+		{
+			tarjeta.fotos.map((foto, i) => (
+				<Picture
+					src={imagenes[i]}
+					formats={['avif', 'webp']}
+					widths={anchos(imagenes[i].width)}
+					sizes={sizes}
+					alt={i === 0 ? altDe(foto) : ''}
+					aria-hidden={i === 0 ? undefined : 'true'}
+					loading={carga}
+					decoding="async"
+					class:list={['cuadro absolute inset-0 h-full w-full object-contain', i > 0 && 'opacity-0']}
+					data-cuadro={i}
+				/>
+			))
+		}
+		{
+			esRafaga && (
+				<span class="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur">
+					{imagenes.length} fotos
+				</span>
+			)
+		}
+	</div>
+	<figcaption class="flex w-0 min-w-full flex-col gap-1 px-2 pt-3 pb-1">
+		<time datetime={formatoISO(tarjeta.fecha)} class="text-sm font-medium text-tinta-suave">
+			{formatoCorto(tarjeta.fecha)}
+		</time>
+		{tarjeta.texto && <p class="text-base text-tinta">{tarjeta.texto}</p>}
+	</figcaption>
+</figure>
+
+<style>
+	.tarjeta {
+		transform: rotate(var(--giro));
+		transition: transform 700ms var(--ease-fluido);
+	}
+	.tarjeta:hover {
+		transform: rotate(0deg) translateY(-4px);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.tarjeta,
+		.tarjeta:hover {
+			transform: none;
+			transition: none;
+		}
+	}
+</style>

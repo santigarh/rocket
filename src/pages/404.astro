@@ -1,0 +1,27 @@
+---
+import Icono from '../components/Icono.astro';
+import Layout from '../layouts/Layout.astro';
+import { ruta } from '../lib/ruta';
+import { getCatalogo } from '../lib/catalogo';
+
+const { perro } = await getCatalogo();
+---
+
+<Layout titulo={`Página no encontrada · ${perro.nombre}`} descripcion="Esta página no existe.">
+	<section class="mx-auto flex min-h-dvh max-w-[680px] flex-col justify-center px-4">
+		<p class="text-sm font-semibold tracking-widest text-acento uppercase">Error 404</p>
+		<h1 class="texto-degradado mt-4 text-5xl font-semibold tracking-tight md:text-6xl">
+			{perro.nombre} escondió esta página.
+		</h1>
+		<p class="mt-6 text-lg text-tinta-suave">
+			Buscamos debajo del sillón y en su cama, pero no está. Puede que el enlace esté mal escrito o que la página ya no exista.
+		</p>
+		<a
+			href={ruta('/')}
+			class="mt-10 inline-flex w-max items-center gap-2 rounded-full bg-tinta px-3 py-2 text-base font-semibold text-fondo transition duration-700 ease-fluido hover:-translate-y-0.5 active:scale-[0.98]"
+		>
+			<Icono nombre="flecha-izquierda" class="size-4" />
+			Volver a su historia
+		</a>
+	</section>
+</Layout>

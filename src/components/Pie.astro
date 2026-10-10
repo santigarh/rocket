@@ -1,0 +1,23 @@
+---
+import Icono from './Icono.astro';
+
+interface Props {
+	perro: string;
+}
+
+const { perro } = Astro.props;
+const anio = new Date().getFullYear();
+---
+
+<footer class="bg-elevada">
+	<div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-12 text-sm text-tinta-suave md:flex-row md:items-center md:justify-between md:px-8">
+		<p>{perro} · {anio} · Hecho con cariño, una foto a la vez.</p>
+		<a
+			href="#inicio"
+			class="inline-flex w-max items-center gap-2 rounded-full border border-borde px-3 py-2 font-semibold text-tinta transition duration-700 ease-fluido hover:border-acento active:scale-[0.98]"
+		>
+			Volver al inicio
+			<Icono nombre="flecha-abajo" class="size-4 rotate-180" />
+		</a>
+	</div>
+</footer>

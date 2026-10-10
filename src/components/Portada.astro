@@ -1,0 +1,73 @@
+---
+import { Picture } from 'astro:assets';
+import type { Catalogo } from '../lib/catalogo';
+import { formatoISO, formatoLargo } from '../lib/catalogo/fechas';
+import { imagenDe } from '../lib/imagenes';
+import Icono from './Icono.astro';
+
+interface Props {
+	catalogo: Catalogo;
+}
+
+const { catalogo } = Astro.props;
+const { perro, portada, capitulos } = catalogo;
+const imagen = await imagenDe(portada.nombre);
+const primerCapitulo = capitulos[0];
+const anchos = [...[360, 540, 720, 960].filter((w) => w < imagen.width), imagen.width];
+---
+
+<section id="inicio" class="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-12 px-4 pt-24 pb-16 md:grid-cols-[1fr_auto] md:gap-16 md:px-8">
+	<div class="revelar max-w-[680px]">
+		<p class="text-sm font-semibold tracking-widest text-acento uppercase">Su historia, mes a mes</p>
+		<h1 class="texto-degradado mt-4 text-7xl leading-none font-semibold tracking-tight md:text-9xl">
+			{perro.nombre}
+		</h1>
+		<p class="mt-6 max-w-[680px] text-lg text-tinta-suave md:text-xl">
+			Llegó a casa el <time datetime={formatoISO(perro.llegada)} class="font-medium text-tinta">{formatoLargo(perro.llegada)}</time>.{' '}
+			<br class="hidden md:block" />
+			Estas son sus fotos, en el orden en que pasaron.
+		</p>
+		{
+			primerCapitulo && (
+				<a
+					href={`#capitulo-${primerCapitulo.numero}`}
+					class="mt-10 inline-flex items-center gap-2 rounded-full bg-tinta px-3 py-2 text-base font-semibold text-fondo transition duration-700 ease-fluido hover:-translate-y-0.5 active:scale-[0.98]"
+				>
+					Empezar por el primer día
+					<Icono nombre="flecha-abajo" class="size-4" />
+				</a>
+			)
+		}
+	</div>
+
+	<figure class="revelar justify-self-center md:justify-self-end">
+		<div class="portada-marco rounded-3xl border border-borde bg-superficie p-3 shadow-xl shadow-black/10">
+			<Picture
+				src={imagen}
+				formats={['avif', 'webp']}
+				widths={anchos}
+				sizes="(min-width: 768px) 40vw, 85vw"
+				alt={portada.texto ?? `${perro.nombre}, ${formatoLargo(portada.fecha)}`}
+				loading="eager"
+				fetchpriority="high"
+				class="max-h-[70dvh] w-auto rounded-xl object-contain"
+			/>
+		</div>
+	</figure>
+</section>
+
+<style>
+	.portada-marco {
+		transform: rotate(2deg);
+		transition: transform 700ms var(--ease-fluido);
+	}
+	.portada-marco:hover {
+		transform: rotate(0deg);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.portada-marco,
+		.portada-marco:hover {
+			transform: none;
+		}
+	}
+</style>
